@@ -17,26 +17,84 @@ Add the flake as an input:
 
 ```nix
 {
-  inputs.solana-nix.url = "github:<you>/solana-nix";
-  outputs = { self, nixpkgs, solana-nix, ... }: {
-    nixpkgs.overlays = [ solana-nix.overlays.default ];
-  };
+  inputs.solana-nix.url = "github:0xgsvs/solana-nix";
 }
 ```
 
-### Overlay
+### flake-parts: `flakeModules.default`
 
-`solana-nix.overlays.default` exposes every versioned attribute:
+If you use [flake-parts](https://flake.parts), this is the most direct option.
+It gives you a `devShells.default` with the Solana toolchain, so `nix develop` /
+`nom develop` just work:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    solana-nix.url = "github:0xgsvs/solana-nix";
+    solana-nix.inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs = inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [ inputs.solana-nix.flakeModules.default ];
+
+      systems = [ "x86_64-linux" ];
+
+      perSystem = { inputs', ... }: {
+        solana = {
+          enable = true;
+          # Optional: defaults to the latest solana-cli.
+          package = inputs'.solana-nix.packages.solana-cli_43;
+          platformTools = [
+            inputs'.solana-nix.packages.solana-platform-tools_155
+            inputs'.solana-nix.packages.solana-platform-tools_156
+          ];
+        };
+      };
+    };
+}
+```
+
+The package options resolve from `inputs'.solana-nix.packages`, so you do **not**
+need to add an overlay.
+
+### Plain flake: `lib.mkDevShell`
+
+Without flake-parts, apply the overlay and call the helper directly:
+
+```nix
+{
+  inputs.solana-nix.url = "github:0xgsvs/solana-nix";
+
+  outputs = { self, nixpkgs, solana-nix, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ solana-nix.overlays.default ];
+      };
+    in {
+      devShells.${system}.default = solana-nix.lib.mkDevShell {
+        inherit pkgs;
+        package = pkgs.solana-cli_43;
+        platformTools = [ pkgs.solana-platform-tools_155 ];
+      };
+    };
+}
+```
+
+### Packages and overlay
+
+Every versioned attribute is available as `pkgs.<attr>` once the overlay is
+applied, and as `solana-nix.packages.<system>.<attr>` directly:
 
 ```nix
 {
   nixpkgs.overlays = [ inputs.solana-nix.overlays.default ];
 }
 ```
-
-Then use `pkgs.solana-cli_43`, `pkgs.solana-platform-tools_155`, etc.
-
-### Packages
 
 | Package | Available attributes |
 | --- | --- |
@@ -49,16 +107,23 @@ Then use `pkgs.solana-cli_43`, `pkgs.solana-platform-tools_155`, etc.
 `spl-token` binaries that Agave pins for that release, so the toolchain is
 always internally consistent.
 
-### Dev shell
+### `--tools-version`
+
+`cargo-build-sbf` resolves SBF toolchains only from
+`~/.cache/solana/v<version>/platform-tools`, never from your profile or
+`$PATH`. Listing a version in `platformTools` symlinks it into that cache (from
+the dev shell's `shellHook`), so it becomes selectable:
 
 ```console
-$ nix develop
+$ cargo build-sbf --tools-version v1.55
 ```
+
+The version Agave recommends for the chosen `package` is always available.
 
 ## Modules
 
-`nixosModules.default` and `homeManagerModules.default` provide a
-`programs.solana-cli` option:
+`nixosModules.default` and `homeManagerModules.default` additionally let you
+install the toolchain declaratively:
 
 ```nix
 {
@@ -76,8 +141,5 @@ $ nix develop
 }
 ```
 
-`platformTools` entries are symlinked into
-`~/.cache/solana/v<version>/platform-tools` so they can be selected with
-`cargo build-sbf --tools-version <version>`. The version recommended by the
-chosen `package` is always available, as `cargo-build-sbf` sets it up on first
-run.
+These are for NixOS / home-manager users only. Everyone else should use
+`flakeModules.default` or `lib.mkDevShell`.
