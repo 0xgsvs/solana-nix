@@ -108,6 +108,8 @@ applied, and as `solana-nix.packages.<system>.<attr>` directly:
 | `cargo-build-sbf` | `cargo-build-sbf_41`, `cargo-build-sbf_44`, `cargo-build-sbf_latest` |
 | `spl-token-cli` | `spl-token-cli_56`, `spl-token-cli_latest` |
 | `solana-platform-tools` | `solana-platform-tools_152` … `solana-platform-tools_157`, `solana-platform-tools_latest` |
+| `anchor` | `anchor_12`, `anchor_latest` |
+| `surfpool` | `surfpool_15`, `surfpool_latest` |
 
 `solana-cli_*` re-exports the `cargo-build-sbf` / `cargo-test-sbf` /
 `spl-token` binaries that Agave pins for that release, so the toolchain is
