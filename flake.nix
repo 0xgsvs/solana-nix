@@ -51,6 +51,8 @@
               ;
             inherit (splTokenCli) spl-token-cli_56;
           };
+          anchor = pkgs.callPackage ./pkgs/anchor.nix { };
+          surfpool = pkgs.callPackage ./pkgs/surfpool.nix { };
 
           packageSet = {
             solana-platform-tools = solanaPlatformTools.solana-platform-tools_latest;
@@ -78,6 +80,12 @@
               solana-cli_42
               solana-cli_43
               ;
+
+            anchor = anchor.anchor_latest;
+            inherit (anchor) anchor_12;
+
+            surfpool = surfpool.surfpool_latest;
+            inherit (surfpool) surfpool_15;
           };
         in
         {
@@ -92,6 +100,8 @@
               solanaCli.solana-cli_latest
               cargoBuildSbf.cargo-build-sbf_latest
               splTokenCli.spl-token-cli_latest
+              anchor.anchor_latest
+              surfpool.surfpool_latest
             ];
           };
         };
