@@ -52,6 +52,13 @@ let
       packages = [ package ] ++ extraPackages;
 
       shellHook = ''
+        # Publish this shell's PATH so the user's interactive shell can restore
+        # its precedence after tools like mise re-prepend directories on startup.
+        # The shellHook runs before the user's rc (e.g. fish config.fish), so it
+        # cannot win the PATH ordering itself; this variable is the handoff.
+        # It is inert unless the user's rc opts in. See the README.
+        export NIX_DEVSHELL_PATH="$PATH"
+
         ${mkCacheScript platformTools}
 
         # Only print the banner to a terminal. `nom develop` / `nix develop`
