@@ -126,6 +126,33 @@ $ cargo build-sbf --tools-version v1.55
 
 The version Agave recommends for the chosen `package` is always available.
 
+### Using with mise (or other version managers)
+
+Some tools (e.g. [mise](https://mise.jdx.dev)) re-prepend their own directories
+to `PATH` when your interactive shell starts. Since a dev shell's `shellHook`
+runs *before* your shell's rc, those tools can shadow the shell's `solana` /
+`cargo-build-sbf`, even though the shell is "active".
+
+To make the Nix toolchain win inside dev shells while keeping mise everywhere
+else, have the shell publish its `PATH` (done automatically via
+`NIX_DEVSHELL_PATH`) and re-prepend it at the **end** of your shell rc, after
+the version manager has run.
+
+For fish, append to `~/.config/fish/config.fish`:
+
+```fish
+# Inside a Nix dev shell, put the shell's own bin dirs ahead of mise.
+if set -q IN_NIX_SHELL
+    for d in (string split : "$NIX_DEVSHELL_PATH")
+        fish_add_path --move --prepend $d
+    end
+end
+```
+
+`NIX_DEVSHELL_PATH` is only set inside the dev shell, so this has no effect on
+other shells, other users, or mise outside dev shells. It is inert unless your
+rc reads it.
+
 ## Modules
 
 `nixosModules.default` and `homeManagerModules.default` additionally let you
