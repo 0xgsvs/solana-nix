@@ -29,8 +29,8 @@ let
   # Build a dev shell that provides the Solana toolchain and primes the
   # platform-tools cache on entry.
   #
-  # `callPackage` is passed explicitly so a flake's `pkgs` argument is resolved
-  # by the caller, keeping the returned function usable in any module system.
+  # `pkgs` is passed explicitly so the returned function is usable from any
+  # module system; the caller resolves it.
   mkDevShell =
     {
       pkgs,
@@ -38,12 +38,34 @@ let
       platformTools ? [ ],
       extraPackages ? [ ],
     }:
+    let
+      available = map (p: "v${p.version}") platformTools;
+      availableLine = lib.optionalString (available != [ ]) (
+        "echo '  also available via --tools-version: ${lib.concatStringsSep " " available}'"
+      );
+    in
     pkgs.mkShell {
       packages = [ package ] ++ extraPackages;
+
       shellHook = ''
         ${mkCacheScript platformTools}
-        echo "solana-cli: $(solana --version 2>/dev/null || echo 'not found')"
-        echo "cargo-build-sbf: $(cargo-build-sbf --version 2>/dev/null | head -n1 || echo 'not found')"
+
+        # Only print the banner to a terminal. `nom develop` / `nix develop`
+        # replay the hook while building the environment, where stdout is not a
+        # tty; this keeps the banner from appearing during that replay.
+        if [ -t 1 ] && [ -z "''${SOLANA_NIX_BANNER_SHOWN-}" ]; then
+          export SOLANA_NIX_BANNER_SHOWN=1
+
+          echo "solana-cli: $(solana --version 2>/dev/null || echo 'not found')"
+          echo "cargo-build-sbf: $(cargo-build-sbf --version 2>/dev/null | head -n1 || echo 'not found')"
+
+          recommended="$(cargo-build-sbf --version 2>/dev/null | sed -n 's/^platform-tools //p')"
+          if [ -n "$recommended" ]; then
+            echo "platform-tools: $recommended (recommended)"
+          fi
+
+          ${availableLine}
+        fi
       '';
     };
 in
