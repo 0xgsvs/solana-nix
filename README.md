@@ -42,23 +42,23 @@ It gives you a `devShells.default` with the Solana toolchain, so `nix develop` /
 
       systems = [ "x86_64-linux" ];
 
-      perSystem = { inputs', ... }: {
+      perSystem = {
         solana = {
           enable = true;
-          # Optional: defaults to the latest solana-cli.
-          package = inputs'.solana-nix.packages.solana-cli_43;
-          platformTools = [
-            inputs'.solana-nix.packages.solana-platform-tools_155
-            inputs'.solana-nix.packages.solana-platform-tools_156
-          ];
+          # Optional: defaults to the latest solana-cli. Accepts a version
+          # string or a package.
+          package = "4.3";
+          platformTools = [ "1.55" "1.56" ];
         };
       };
     };
 }
 ```
 
-The package options resolve from `inputs'.solana-nix.packages`, so you do **not**
-need to add an overlay.
+`package` and `platformTools` accept either a version string (`"4.3"`, `"1.55"`)
+resolved against this flake's packages, or an explicit package
+(`inputs'.solana-nix.packages.solana-cli_43`) for full control. No overlay is
+needed.
 
 ### Plain flake: `lib.mkDevShell`
 
