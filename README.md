@@ -32,8 +32,10 @@ It gives you a `devShells.default` with the Solana toolchain, so `nix develop` /
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    solana-nix.url = "github:0xgsvs/solana-nix";
-    solana-nix.inputs.nixpkgs.follows = "nixpkgs";
+    solana-nix = {
+      url = "github:0xgsvs/solana-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ flake-parts, ... }:
@@ -42,23 +44,25 @@ It gives you a `devShells.default` with the Solana toolchain, so `nix develop` /
 
       systems = [ "x86_64-linux" ];
 
-      perSystem = {
-        solana = {
-          enable = true;
-          # Optional: defaults to the latest solana-cli. Accepts a version
-          # string or a package.
-          package = "4.3";
-          platformTools = [ "1.55" "1.56" ];
+      perSystem = { inputs', ... }:
+        let solana = inputs'.solana-nix.packages;
+        in {
+          solana = {
+            enable = true;
+            # Optional: defaults to the latest solana-cli.
+            package = solana.solana-cli_43;
+            platformTools = [
+              solana.solana-platform-tools_155
+              solana.solana-platform-tools_156
+            ];
+          };
         };
-      };
     };
 }
 ```
 
-`package` and `platformTools` accept either a version string (`"4.3"`, `"1.55"`)
-resolved against this flake's packages, or an explicit package
-(`inputs'.solana-nix.packages.solana-cli_43`) for full control. No overlay is
-needed.
+The package options resolve from `inputs'.solana-nix.packages`, so you do **not**
+need to add an overlay.
 
 ### Plain flake: `lib.mkDevShell`
 
