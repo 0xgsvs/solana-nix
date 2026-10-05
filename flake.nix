@@ -13,6 +13,9 @@
         inputs.flake-parts.flakeModules.easyOverlay
       ];
 
+      flake.nixosModules.default = ./modules/nixos.nix;
+      flake.homeManagerModules.default = ./modules/home-manager.nix;
+
       systems = [
         "x86_64-linux"
         "aarch64-linux"

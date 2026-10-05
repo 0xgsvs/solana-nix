@@ -57,6 +57,27 @@ $ nix develop
 
 ## Modules
 
-NixOS and home-manager modules are planned and will let you configure which
-`solana-cli` release is installed and which `solana-platform-tools` versions
-are available to `--tools-version`.
+`nixosModules.default` and `homeManagerModules.default` provide a
+`programs.solana-cli` option:
+
+```nix
+{
+  imports = [ inputs.solana-nix.nixosModules.default ]; # or homeManagerModules.default
+  nixpkgs.overlays = [ inputs.solana-nix.overlays.default ];
+
+  programs.solana-cli = {
+    enable = true;
+    package = pkgs.solana-cli_43;
+    platformTools = with pkgs; [
+      solana-platform-tools_155
+      solana-platform-tools_156
+    ];
+  };
+}
+```
+
+`platformTools` entries are symlinked into
+`~/.cache/solana/v<version>/platform-tools` so they can be selected with
+`cargo build-sbf --tools-version <version>`. The version recommended by the
+chosen `package` is always available, as `cargo-build-sbf` sets it up on first
+run.
