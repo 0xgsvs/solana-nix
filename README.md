@@ -142,12 +142,17 @@ For fish, append to `~/.config/fish/config.fish`:
 
 ```fish
 # Inside a Nix dev shell, put the shell's own bin dirs ahead of mise.
+# `--path` keeps this session-only; reverse the iteration so the original
+# PATH order is preserved when prepending.
 if set -q IN_NIX_SHELL
-    for d in (string split : "$NIX_DEVSHELL_PATH")
-        fish_add_path --move --prepend $d
+    for d in (string split : "$NIX_DEVSHELL_PATH")[-1..1]
+        fish_add_path --path --move --prepend $d
     end
 end
 ```
+
+Without `--path`, `fish_add_path` writes to the persistent universal
+`fish_user_paths`, which is not what you want here.
 
 `NIX_DEVSHELL_PATH` is only set inside the dev shell, so this has no effect on
 other shells, other users, or mise outside dev shells. It is inert unless your
