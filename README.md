@@ -45,15 +45,15 @@ It gives you a `devShells.default` with the Solana toolchain, so `nix develop` /
       systems = [ "x86_64-linux" ];
 
       perSystem = { inputs', ... }:
-        let solana = inputs'.solana-nix.packages;
+        let solanaPkgs = inputs'.solana-nix.packages;
         in {
           solana = {
             enable = true;
             # Optional: defaults to the latest solana-cli.
-            package = solana.solana-cli_43;
-            platformTools = [
-              solana.solana-platform-tools_155
-              solana.solana-platform-tools_156
+            package = solanaPkgs.solana-cli_43;
+            platformTools = with solanaPkgs; [
+              solana-platform-tools_155
+              solana-platform-tools_156
             ];
           };
         };
@@ -61,8 +61,10 @@ It gives you a `devShells.default` with the Solana toolchain, so `nix develop` /
 }
 ```
 
-The package options resolve from `inputs'.solana-nix.packages`, so you do **not**
-need to add an overlay.
+The option namespace is `perSystem.solana`, named after the software (the
+flake-parts convention, as with `treefmt` and `pre-commit`). Package options
+resolve from `inputs'.solana-nix.packages`, so you do **not** need to add an
+overlay.
 
 ### Plain flake: `lib.mkDevShell`
 
