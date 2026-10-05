@@ -43,6 +43,10 @@ let
       availableLine = lib.optionalString (available != [ ]) (
         "echo '  also available via --tools-version: ${lib.concatStringsSep " " available}'"
       );
+      # Use the package's absolute paths so the banner reports the tools this
+      # shell actually provides, even if e.g. mise's shims shadow them on PATH.
+      solana = "${package}/bin/solana";
+      cargoBuildSbf = "${package}/bin/cargo-build-sbf";
     in
     pkgs.mkShell {
       packages = [ package ] ++ extraPackages;
@@ -56,10 +60,10 @@ let
         if [ -t 1 ] && [ -z "''${SOLANA_NIX_BANNER_SHOWN-}" ]; then
           export SOLANA_NIX_BANNER_SHOWN=1
 
-          echo "solana-cli: $(solana --version 2>/dev/null || echo 'not found')"
-          echo "cargo-build-sbf: $(cargo-build-sbf --version 2>/dev/null | head -n1 || echo 'not found')"
+          echo "solana-cli: $(${solana} --version 2>/dev/null || echo 'not found')"
+          echo "cargo-build-sbf: $(${cargoBuildSbf} --version 2>/dev/null | head -n1 || echo 'not found')"
 
-          recommended="$(cargo-build-sbf --version 2>/dev/null | sed -n 's/^platform-tools //p')"
+          recommended="$(${cargoBuildSbf} --version 2>/dev/null | sed -n 's/^platform-tools //p')"
           if [ -n "$recommended" ]; then
             echo "platform-tools: $recommended (recommended)"
           fi
