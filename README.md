@@ -55,6 +55,9 @@ It gives you a `devShells.default` with the Solana toolchain, so `nix develop` /
               solana-platform-tools_155
               solana-platform-tools_156
             ];
+            # Optional, both default to false:
+            anchor.enable = true;
+            surfpool.enable = true;
           };
         };
     };

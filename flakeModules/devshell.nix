@@ -22,6 +22,8 @@
 #                 solana.solana-platform-tools_155
 #                 solana.solana-platform-tools_156
 #               ];
+#               anchor.enable = true;
+#               surfpool.enable = true;
 #             };
 #           };
 #       };
@@ -68,6 +70,24 @@
           default = [ ];
           description = "Additional packages to include in the development shell.";
         };
+
+        anchor = {
+          enable = lib.mkEnableOption "the Anchor CLI";
+          package = lib.mkOption {
+            type = lib.types.package;
+            defaultText = lib.literalExpression "inputs'.solana-nix.packages.anchor";
+            description = "The `anchor` package to include when enabled.";
+          };
+        };
+
+        surfpool = {
+          enable = lib.mkEnableOption "the Surfpool CLI";
+          package = lib.mkOption {
+            type = lib.types.package;
+            defaultText = lib.literalExpression "inputs'.solana-nix.packages.surfpool";
+            description = "The `surfpool` package to include when enabled.";
+          };
+        };
       };
     }
   );
@@ -83,14 +103,21 @@
       cfg = config.solana;
       helpers = import ../modules/lib.nix { inherit lib; };
       solanaPkgs = inputs'.solana-nix.packages;
+      extraPackages =
+        cfg.extraPackages
+        ++ lib.optional cfg.anchor.enable cfg.anchor.package
+        ++ lib.optional cfg.surfpool.enable cfg.surfpool.package;
     in
     {
       solana.package = lib.mkDefault solanaPkgs.solana-cli;
+      solana.anchor.package = lib.mkDefault solanaPkgs.anchor;
+      solana.surfpool.package = lib.mkDefault solanaPkgs.surfpool;
 
       devShells = lib.mkIf cfg.enable {
         default = helpers.mkDevShell {
           inherit pkgs;
-          inherit (cfg) package platformTools extraPackages;
+          inherit (cfg) package platformTools;
+          inherit extraPackages;
         };
       };
 
