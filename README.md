@@ -27,6 +27,20 @@ always internally consistent. `solanaCli` re-exports the `cargo-build-sbf` /
 
 ## Usage
 
+### Template
+
+Scaffold a flake-parts project that uses the dev shell module:
+
+```console
+$ nix flake init -t github:0xgsvs/solana-nix
+$ nix develop
+```
+
+It targets `x86_64-linux`, `aarch64-linux`, `x86_64-darwin` and
+`aarch64-darwin`; trim the `systems` list to what you actually need.
+
+### Add as an input
+
 Add the flake as an input:
 
 ```nix

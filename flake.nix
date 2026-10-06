@@ -15,6 +15,11 @@
 
       flake.flakeModules.default = ./flakeModules/devshell.nix;
 
+      flake.templates.default = {
+        path = ./templates/default;
+        description = "Solana development shell (flake-parts)";
+      };
+
       # For plain (non-flake-parts) flakes:
       #   solana-nix.lib.mkDevShell { inherit pkgs; package = pkgs.solana-cli; }
       flake.lib.mkDevShell = args: (import ./lib.nix).mkDevShell args;
