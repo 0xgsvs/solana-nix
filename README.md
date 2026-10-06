@@ -19,7 +19,7 @@ managing Solana and Anchor toolchains with Nix.
 | `splTokenCli` | 5.6.1 |
 | `solanaPlatformTools` | 1.57 |
 | `anchor` | 1.2.0 |
-| `surfpool` | 1.5.0 |
+| `surfpool` | 1.6.0 |
 
 Each version is pinned to the one Agave 4.3.0 depends on, so the toolchain is
 always internally consistent. `solanaCli` re-exports the `cargo-build-sbf` /

@@ -1,5 +1,4 @@
 # Shared helper for building a Solana development shell.
-{ lib }:
 {
   # A dev shell with the Solana toolchain.
   #

@@ -17,7 +17,7 @@
 
       # For plain (non-flake-parts) flakes:
       #   solana-nix.lib.mkDevShell { inherit pkgs; package = pkgs.solana-cli; }
-      flake.lib.mkDevShell = args: (import ./lib.nix { lib = args.pkgs.lib; }).mkDevShell args;
+      flake.lib.mkDevShell = args: (import ./lib.nix).mkDevShell args;
 
       systems = [
         "x86_64-linux"

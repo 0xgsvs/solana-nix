@@ -84,7 +84,7 @@
     }:
     let
       cfg = config.solana;
-      helpers = import ../lib.nix { inherit lib; };
+      helpers = import ../lib.nix;
       solanaPkgs = inputs'.solana-nix.packages;
       extraPackages =
         cfg.extraPackages
