@@ -13,13 +13,11 @@
         inputs.flake-parts.flakeModules.easyOverlay
       ];
 
-      flake.nixosModules.default = ./modules/nixos.nix;
-      flake.homeManagerModules.default = ./modules/home-manager.nix;
       flake.flakeModules.default = ./flakeModules/devshell.nix;
 
       # For plain (non-flake-parts) flakes:
       #   solana-nix.lib.mkDevShell { inherit pkgs; package = pkgs.solana-cli_43; }
-      flake.lib.mkDevShell = args: (import ./modules/lib.nix { lib = args.pkgs.lib; }).mkDevShell args;
+      flake.lib.mkDevShell = args: (import ./lib.nix { lib = args.pkgs.lib; }).mkDevShell args;
 
       systems = [
         "x86_64-linux"

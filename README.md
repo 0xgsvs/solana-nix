@@ -162,27 +162,3 @@ Without `--path`, `fish_add_path` writes to the persistent universal
 `NIX_DEVSHELL_PATH` is only set inside the dev shell, so this has no effect on
 other shells, other users, or mise outside dev shells. It is inert unless your
 rc reads it.
-
-## Modules
-
-`nixosModules.default` and `homeManagerModules.default` additionally let you
-install the toolchain declaratively:
-
-```nix
-{
-  imports = [ inputs.solana-nix.nixosModules.default ]; # or homeManagerModules.default
-  nixpkgs.overlays = [ inputs.solana-nix.overlays.default ];
-
-  programs.solana-cli = {
-    enable = true;
-    package = pkgs.solana-cli_43;
-    platformTools = with pkgs; [
-      solana-platform-tools_155
-      solana-platform-tools_156
-    ];
-  };
-}
-```
-
-These are for NixOS / home-manager users only. Everyone else should use
-`flakeModules.default` or `lib.mkDevShell`.
