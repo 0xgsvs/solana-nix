@@ -16,7 +16,7 @@
       flake.flakeModules.default = ./flakeModules/devshell.nix;
 
       # For plain (non-flake-parts) flakes:
-      #   solana-nix.lib.mkDevShell { inherit pkgs; package = pkgs.solana-cli_43; }
+      #   solana-nix.lib.mkDevShell { inherit pkgs; package = pkgs.solana-cli; }
       flake.lib.mkDevShell = args: (import ./lib.nix { lib = args.pkgs.lib; }).mkDevShell args;
 
       systems = [
@@ -35,55 +35,21 @@
           pkgs = import inputs.nixpkgs { inherit system; };
 
           solanaPlatformTools = pkgs.callPackage ./pkgs/solana-platform-tools.nix { };
-          cargoBuildSbf = pkgs.callPackage ./pkgs/cargo-build-sbf.nix {
-            inherit (solanaPlatformTools)
-              solana-platform-tools_154
-              solana-platform-tools_157
-              ;
-          };
+          cargoBuildSbf = pkgs.callPackage ./pkgs/cargo-build-sbf.nix { inherit solanaPlatformTools; };
           splTokenCli = pkgs.callPackage ./pkgs/spl-token-cli.nix { };
-          solanaCli = pkgs.callPackage ./pkgs/solana-cli.nix {
-            inherit (cargoBuildSbf)
-              cargo-build-sbf_41
-              cargo-build-sbf_44
-              ;
-            inherit (splTokenCli) spl-token-cli_56;
-          };
+          solanaCli = pkgs.callPackage ./pkgs/solana-cli.nix { inherit cargoBuildSbf splTokenCli; };
           anchor = pkgs.callPackage ./pkgs/anchor.nix { };
           surfpool = pkgs.callPackage ./pkgs/surfpool.nix { };
 
           packageSet = {
-            solana-platform-tools = solanaPlatformTools.solana-platform-tools_latest;
-            inherit (solanaPlatformTools)
-              solana-platform-tools_152
-              solana-platform-tools_153
-              solana-platform-tools_154
-              solana-platform-tools_155
-              solana-platform-tools_156
-              solana-platform-tools_157
+            inherit
+              solanaPlatformTools
+              cargoBuildSbf
+              splTokenCli
+              solanaCli
+              anchor
+              surfpool
               ;
-
-            cargo-build-sbf = cargoBuildSbf.cargo-build-sbf_latest;
-            inherit (cargoBuildSbf)
-              cargo-build-sbf_41
-              cargo-build-sbf_44
-              ;
-
-            spl-token-cli = splTokenCli.spl-token-cli_latest;
-            inherit (splTokenCli) spl-token-cli_56;
-
-            solana-cli = solanaCli.solana-cli_latest;
-            inherit (solanaCli)
-              solana-cli_41
-              solana-cli_42
-              solana-cli_43
-              ;
-
-            anchor = anchor.anchor_latest;
-            inherit (anchor) anchor_12;
-
-            surfpool = surfpool.surfpool_latest;
-            inherit (surfpool) surfpool_15;
           };
         in
         {
@@ -95,11 +61,11 @@
 
           devShells.default = pkgs.mkShell {
             packages = [
-              solanaCli.solana-cli_latest
-              cargoBuildSbf.cargo-build-sbf_latest
-              splTokenCli.spl-token-cli_latest
-              anchor.anchor_latest
-              surfpool.surfpool_latest
+              solanaCli
+              cargoBuildSbf
+              splTokenCli
+              anchor
+              surfpool
             ];
           };
         };

@@ -17,11 +17,7 @@
 #           in {
 #             solana = {
 #               enable = true;
-#               package = solana.solana-cli_43;
-#               platformTools = [
-#                 solana.solana-platform-tools_155
-#                 solana.solana-platform-tools_156
-#               ];
+#               package = solana.solanaCli;
 #               anchor.enable = true;
 #               surfpool.enable = true;
 #             };
@@ -29,8 +25,7 @@
 #       };
 #   }
 #
-# It defines `devShells.default` (so `nix develop` / `nom develop` just works)
-# and primes `~/.cache/solana/v<version>/platform-tools` on shell entry.
+# It defines `devShells.default` (so `nix develop` / `nom develop` just works).
 {
   flake-parts-lib,
   lib,
@@ -46,22 +41,10 @@
 
         package = lib.mkOption {
           type = lib.types.package;
-          defaultText = lib.literalExpression "inputs'.solana-nix.packages.solana-cli";
+          defaultText = lib.literalExpression "inputs'.solana-nix.packages.solanaCli";
           description = ''
             The `solana-cli` package providing `solana`, `cargo-build-sbf`,
-            `cargo-test-sbf` and `spl-token`. Defaults to the latest release.
-          '';
-        };
-
-        platformTools = lib.mkOption {
-          type = lib.types.listOf lib.types.package;
-          default = [ ];
-          example = lib.literalExpression ''
-            [ inputs'.solana-nix.packages.solana-platform-tools_155 ]
-          '';
-          description = ''
-            Extra `solana-platform-tools` versions to make selectable with
-            `cargo build-sbf --tools-version <version>`.
+            `cargo-test-sbf` and `spl-token`. Defaults to the pinned release.
           '';
         };
 
@@ -109,14 +92,14 @@
         ++ lib.optional cfg.surfpool.enable cfg.surfpool.package;
     in
     {
-      solana.package = lib.mkDefault solanaPkgs.solana-cli;
+      solana.package = lib.mkDefault solanaPkgs.solanaCli;
       solana.anchor.package = lib.mkDefault solanaPkgs.anchor;
       solana.surfpool.package = lib.mkDefault solanaPkgs.surfpool;
 
       devShells = lib.mkIf cfg.enable {
         default = helpers.mkDevShell {
           inherit pkgs;
-          inherit (cfg) package platformTools;
+          inherit (cfg) package;
           inherit extraPackages;
         };
       };
