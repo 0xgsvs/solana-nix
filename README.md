@@ -138,27 +138,31 @@ to `PATH` when your interactive shell starts. Since a dev shell's `shellHook`
 runs *before* your shell's rc, those tools can shadow the shell's `solana` /
 `cargo-build-sbf`, even though the shell is "active".
 
-To make the Nix toolchain win inside dev shells while keeping mise everywhere
-else, have the shell publish its `PATH` (done automatically via
-`NIX_DEVSHELL_PATH`) and re-prepend it at the **end** of your shell rc, after
-the version manager has run.
+This is entirely a user-side concern — solana-nix does not impose anything. If
+you want the Nix toolchain to win inside dev shells, re-prepend the Nix store
+directories at the **end** of your shell rc, after the version manager has run.
+Inside a Nix shell every tool is under `/nix/store`, so this is generic:
 
 For fish, append to `~/.config/fish/config.fish`:
 
 ```fish
-# Inside a Nix dev shell, put the shell's own bin dirs ahead of mise.
-# `--path` keeps this session-only; reverse the iteration so the original
-# PATH order is preserved when prepending.
+# Inside a Nix dev shell, put the shell's own (nix store) tools first.
 if set -q IN_NIX_SHELL
-    for d in (string split : "$NIX_DEVSHELL_PATH")[-1..1]
-        fish_add_path --path --move --prepend $d
-    end
+    fish_add_path --path --move --prepend (string match '/nix/store/*' $PATH)
 end
 ```
 
-Without `--path`, `fish_add_path` writes to the persistent universal
-`fish_user_paths`, which is not what you want here.
+`--path` keeps this session-only (otherwise `fish_add_path` persists to the
+universal `fish_user_paths`), and `--move` is required because the Nix store
+directories are already in `PATH`. For bash/zsh the equivalent:
 
-`NIX_DEVSHELL_PATH` is only set inside the dev shell, so this has no effect on
-other shells, other users, or mise outside dev shells. It is inert unless your
-rc reads it.
+```sh
+# at the end of ~/.bashrc / ~/.zshrc
+if [ -n "${IN_NIX_SHELL-}" ]; then
+  nixpath="$(printf '%s' "$PATH" | tr ':' '\n' | grep '^/nix/store/' | paste -sd: -)"
+  export PATH="$nixpath:$PATH"
+fi
+```
+
+This only affects Nix shells, uses only standard Nix variables (`IN_NIX_SHELL`),
+and cannot affect other users or your version manager outside dev shells.
